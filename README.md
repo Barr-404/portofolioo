@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio — Muh Akbar Haeruddin
 
-## Getting Started
+Website portofolio pribadi berbasis **Next.js 16 + TypeScript + Tailwind CSS v4 + Framer Motion**.
+Daftar proyek ditarik otomatis dari GitHub (`Barr-404`) dan bisa dikurasi manual lewat file config.
 
-First, run the development server:
+## Fitur
+
+- Hero dengan animasi typing multi-peran, foto profil dari GitHub, badge "Open to work"
+- Integrasi GitHub API (cache 1 jam) — repo kosong, fork, dan repo profil disembunyikan otomatis
+- Kurasi manual: judul, deskripsi dua bahasa, tech stack, screenshot, dan status *featured* per repo
+- Section: About (counter animasi), Skills (ikon brand), Projects, Experience (timeline), Contact (Web3Forms)
+- Bilingual **EN / ID** dengan toggle, tersimpan di `localStorage`
+- Dark / Light mode (`next-themes`), progress bar scroll, active-section highlight
+- Animasi *reveal on scroll*, hover lift, stagger — menghormati `prefers-reduced-motion`
+
+## Menjalankan
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.local.example .env.local   # lalu isi nilainya
+npm run dev                         # http://localhost:3000
+npm run build && npm start          # production
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Yang perlu Anda isi
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| File | Isi |
+| --- | --- |
+| [src/data/profile.ts](src/data/profile.ts) | Nama, email, telepon/WhatsApp, LinkedIn, lokasi, tagline, paragraf About, link CV |
+| [src/data/experience.ts](src/data/experience.ts) | Pendidikan, pekerjaan/magang, organisasi (ganti placeholder `TODO`) |
+| [src/data/projects.ts](src/data/projects.ts) | Override per repo: `featured`, `title`, `description`, `tech`, `image`, `liveUrl`; daftar `hiddenRepos` |
+| [src/data/skills.ts](src/data/skills.ts) | Kategori & daftar skill beserta ikon (dari `react-icons`) |
+| `public/cv.pdf` | File CV untuk tombol "Download CV" (kosongkan `cvUrl` di profile.ts jika belum ada) |
+| `public/projects/*.png` | Screenshot proyek unggulan (rasio 16:10), lalu set `image` di projects.ts |
+| `.env.local` | `NEXT_PUBLIC_WEB3FORMS_KEY` (form kontak), `GITHUB_TOKEN` (opsional), `NEXT_PUBLIC_SITE_URL` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Contact form (Web3Forms)
 
-## Learn More
+1. Daftar gratis di <https://web3forms.com> dengan email tujuan Anda.
+2. Salin *Access Key* ke `.env.local` → `NEXT_PUBLIC_WEB3FORMS_KEY=...`
+3. Tanpa key, form menampilkan pesan agar pengunjung mengirim email langsung.
 
-To learn more about Next.js, take a look at the following resources:
+### Menambah project unggulan
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Di `src/data/projects.ts`, tambahkan/ubah entri:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```ts
+{
+  repo: "NAMA-REPO",
+  featured: true,
+  title: "Judul yang enak dibaca",
+  description: { en: "...", id: "..." },
+  tech: ["Next.js", "PostgreSQL"],
+  image: "/projects/nama-repo.png",
+  liveUrl: "https://demo.vercel.app", // atau null untuk menyembunyikan tombol Live
+}
+```
 
-## Deploy on Vercel
+Repo yang tidak ada di daftar tetap tampil dengan data asli GitHub (nama di-*humanize* otomatis).
+Agar deskripsi otomatis terbaca, isi kolom *Description* pada repo di GitHub.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy ke Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push repo ini ke GitHub.
+2. Import di <https://vercel.com/new>, framework terdeteksi otomatis.
+3. Tambahkan Environment Variables: `NEXT_PUBLIC_WEB3FORMS_KEY`, `NEXT_PUBLIC_SITE_URL` (URL vercel Anda), opsional `GITHUB_TOKEN`.
+4. Deploy. Data GitHub di-*revalidate* tiap 1 jam.
+
+## Struktur
+
+```
+src/
+  app/            layout, page, globals.css
+  components/
+    layout/       Navbar, Footer, ThemeToggle, LangToggle
+    sections/     Hero, About, Skills, Projects, Experience, Contact
+    ui/           Reveal, TypingText, SectionHeading, ProjectCard, FeaturedProjectCard
+    providers/    Theme + Lang providers
+  context/        LangContext
+  data/           profile, projects, skills, experience  ← edit di sini
+  dictionaries/   en, id  (teks UI)
+  lib/            github (fetch + filter + merge), project (types), time
+```
